@@ -1,6 +1,7 @@
 import { Navigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import { useAuth } from '../context/AuthContext';
+import AppShell from './AppShell';
 import type { ReactNode } from 'react';
 
 interface DecodedToken {
@@ -20,5 +21,5 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
     logout();
     return <Navigate to="/login" replace />;
   }
-  return <>{children}</>;
+  return <AppShell>{children}</AppShell>;
 }
