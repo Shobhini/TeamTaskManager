@@ -70,7 +70,7 @@ export default function TaskDetail() {
     setError('');
     try {
       const payload = isAdmin
-        ? { title, description, status, priority, dueDate: dueDate || undefined, assigneeId: assigneeId || undefined }
+        ? { title, description, status, priority, dueDate: dueDate || undefined, assigneeId: assigneeId || null }
         : { status };
       const res = await tasksApi.updateTask(id!, taskId!, payload);
       setTask(res.data.task);
