@@ -1,6 +1,12 @@
 import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
 
-const SECRET = process.env.JWT_SECRET!;
+dotenv.config();
+
+const SECRET = process.env.JWT_SECRET;
+if (!SECRET) {
+  throw new Error('JWT_SECRET environment variable is not set');
+}
 
 export interface JwtPayload {
   userId: string;

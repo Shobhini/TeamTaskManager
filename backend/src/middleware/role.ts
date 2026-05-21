@@ -12,21 +12,25 @@ export function requireRole(requiredRole: Role) {
       return;
     }
 
-    const member = await prisma.projectMember.findUnique({
-      where: { projectId_userId: { projectId, userId } },
-    });
+    try {
+      const member = await prisma.projectMember.findUnique({
+        where: { projectId_userId: { projectId, userId } },
+      });
 
-    if (!member) {
-      res.status(403).json({ error: 'You are not a member of this project' });
-      return;
+      if (!member) {
+        res.status(403).json({ error: 'You are not a member of this project' });
+        return;
+      }
+
+      if (requiredRole === Role.ADMIN && member.role !== Role.ADMIN) {
+        res.status(403).json({ error: 'Admin access required' });
+        return;
+      }
+
+      req.memberRole = member.role;
+      next();
+    } catch (err) {
+      next(err);
     }
-
-    if (requiredRole === Role.ADMIN && member.role !== Role.ADMIN) {
-      res.status(403).json({ error: 'Admin access required' });
-      return;
-    }
-
-    req.memberRole = member.role;
-    next();
   };
 }
