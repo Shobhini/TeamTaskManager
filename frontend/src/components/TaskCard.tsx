@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
-import StatusBadge from './StatusBadge';
+import Badge from './Badge';
+import Avatar from './Avatar';
 
 interface Task {
   id: string;
@@ -10,29 +11,44 @@ interface Task {
   assignee: { id: string; name: string } | null;
 }
 
+const priorityBorder: Record<string, string> = {
+  HIGH: 'border-l-red-500',
+  MEDIUM: 'border-l-amber-500',
+  LOW: '',
+};
+
 export default function TaskCard({ task, projectId }: { task: Task; projectId: string }) {
-  const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'DONE';
+  const isOverdue = !!task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'DONE';
+  const borderAccent = priorityBorder[task.priority] ?? '';
 
   return (
     <Link
       to={`/projects/${projectId}/tasks/${task.id}`}
-      className={`block bg-white border rounded-lg p-3 shadow-sm hover:shadow transition-shadow ${isOverdue ? 'border-red-300' : 'border-gray-200'}`}
+      className={`block bg-[#1A1A1A] border border-[#2A2A2A] hover:border-zinc-600 rounded-lg p-3 transition-colors border-l-2 ${
+        borderAccent || 'border-l-[#2A2A2A]'
+      }`}
     >
-      <p className="font-medium text-gray-800 text-sm">{task.title}</p>
-      <div className="flex items-center gap-2 mt-2">
-        <StatusBadge status={task.status} />
-        <span className={`text-xs ${task.priority === 'HIGH' ? 'text-red-500' : task.priority === 'MEDIUM' ? 'text-yellow-500' : 'text-gray-400'}`}>
-          {task.priority}
-        </span>
+      <p className="text-sm font-medium text-[#F5F5F5] mb-2 leading-snug">{task.title}</p>
+      <div className="flex items-center gap-1.5 flex-wrap mb-2">
+        <Badge type="status" value={task.status} />
+        <Badge type="priority" value={task.priority} />
       </div>
-      {task.assignee && (
-        <p className="text-xs text-gray-500 mt-1">Assigned: {task.assignee.name}</p>
-      )}
-      {task.dueDate && (
-        <p className={`text-xs mt-1 ${isOverdue ? 'text-red-500 font-semibold' : 'text-gray-400'}`}>
-          Due: {new Date(task.dueDate).toLocaleDateString()}
-        </p>
-      )}
+      <div className="flex items-center justify-between mt-1">
+        {task.assignee ? (
+          <div className="flex items-center gap-1.5">
+            <Avatar name={task.assignee.name} size="sm" />
+            <span className="text-xs text-zinc-500 truncate max-w-[80px]">{task.assignee.name}</span>
+          </div>
+        ) : (
+          <span className="text-xs text-zinc-700">Unassigned</span>
+        )}
+        {task.dueDate && (
+          <span className={`text-xs ${isOverdue ? 'text-red-400 font-medium' : 'text-zinc-600'}`}>
+            {new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+            {isOverdue && ' · !!'}
+          </span>
+        )}
+      </div>
     </Link>
   );
 }
