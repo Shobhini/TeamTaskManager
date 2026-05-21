@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import Navbar from '../components/Navbar';
-import StatusBadge from '../components/StatusBadge';
+import Badge from '../components/Badge';
+import EmptyState from '../components/EmptyState';
+import PageHeader from '../components/PageHeader';
 import { getDashboard } from '../api/dashboard';
 
 interface DashboardTask {
@@ -34,66 +35,91 @@ export default function Dashboard() {
       .finally(() => setLoading(false));
   }, []);
 
+  const metaPills = (
+    <div className="flex items-center gap-2">
+      <span className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-full px-3 py-1 text-xs text-zinc-400">
+        <span className="text-[#F5F5F5] font-medium">{summary.total}</span> total
+      </span>
+      <span className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-full px-3 py-1 text-xs text-zinc-400">
+        <span className="text-blue-400 font-medium">{summary.inProgress}</span> in progress
+      </span>
+      {summary.overdue > 0 && (
+        <span className="bg-red-500/10 border border-red-500/20 rounded-full px-3 py-1 text-xs">
+          <span className="text-red-400 font-medium">{summary.overdue}</span>
+          <span className="text-red-400/70"> overdue</span>
+        </span>
+      )}
+    </div>
+  );
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      <div className="max-w-5xl mx-auto px-6 py-8">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">My Dashboard</h1>
+    <div className="min-h-screen bg-[#111111]">
+      <PageHeader title="My Tasks" meta={metaPills} />
 
-        {/* Summary Bar */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          {[
-            { label: 'My Tasks', value: summary.total, color: 'bg-indigo-50 text-indigo-700' },
-            { label: 'In Progress', value: summary.inProgress, color: 'bg-blue-50 text-blue-700' },
-            { label: 'Overdue', value: summary.overdue, color: 'bg-red-50 text-red-700' },
-          ].map(({ label, value, color }) => (
-            <div key={label} className={`rounded-lg p-4 ${color}`}>
-              <p className="text-3xl font-bold">{value}</p>
-              <p className="text-sm mt-1">{label}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Tasks Table */}
+      <div className="px-8 py-6">
         {loading ? (
-          <p className="text-gray-500">Loading...</p>
+          <div className="space-y-2">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="h-12 bg-[#1A1A1A] rounded-lg animate-pulse" />
+            ))}
+          </div>
         ) : tasks.length === 0 ? (
-          <p className="text-gray-500">No tasks assigned to you.</p>
+          <EmptyState
+            icon="✓"
+            heading="No tasks assigned to you"
+            subtext="Tasks assigned to you will appear here"
+          />
         ) : (
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl overflow-hidden">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 text-gray-500 uppercase text-xs">
-                <tr>
-                  {['Title', 'Project', 'Status', 'Priority', 'Due Date'].map((h) => (
-                    <th key={h} className="px-4 py-3 text-left">{h}</th>
+              <thead>
+                <tr className="border-b border-[#2A2A2A]">
+                  {['Task', 'Project', 'Status', 'Priority', 'Due Date'].map((h) => (
+                    <th key={h} className="px-4 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">
+                      {h}
+                    </th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {tasks.map((task) => (
-                  <tr key={task.id} className={`border-t ${task.overdue ? 'bg-red-50' : 'hover:bg-gray-50'}`}>
+                  <tr
+                    key={task.id}
+                    className={`border-t border-[#2A2A2A] hover:bg-[#222222] transition-colors ${
+                      task.overdue ? 'border-l-2 border-l-red-500' : ''
+                    }`}
+                  >
                     <td className="px-4 py-3">
                       <Link
                         to={`/projects/${task.project.id}/tasks/${task.id}`}
-                        className="text-indigo-600 hover:underline font-medium"
+                        className="text-[#F5F5F5] hover:text-blue-400 font-medium transition-colors"
                       >
                         {task.title}
                       </Link>
                     </td>
-                    <td className="px-4 py-3 text-gray-600">
-                      <Link to={`/projects/${task.project.id}`} className="hover:underline">
+                    <td className="px-4 py-3">
+                      <Link
+                        to={`/projects/${task.project.id}`}
+                        className="text-zinc-400 hover:text-zinc-200 transition-colors"
+                      >
                         {task.project.name}
                       </Link>
                     </td>
-                    <td className="px-4 py-3"><StatusBadge status={task.status} /></td>
                     <td className="px-4 py-3">
-                      <span className={`text-xs font-medium ${task.priority === 'HIGH' ? 'text-red-600' : task.priority === 'MEDIUM' ? 'text-yellow-600' : 'text-gray-500'}`}>
-                        {task.priority}
-                      </span>
+                      <Badge type="status" value={task.status} />
                     </td>
-                    <td className="px-4 py-3 text-gray-600">
-                      {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : '—'}
-                      {task.overdue && <span className="ml-2 text-red-500 text-xs font-semibold">OVERDUE</span>}
+                    <td className="px-4 py-3">
+                      <Badge type="priority" value={task.priority} />
+                    </td>
+                    <td className="px-4 py-3 text-zinc-500 text-xs">
+                      {task.dueDate ? (
+                        <span className={task.overdue ? 'text-red-400 font-medium' : ''}>
+                          {new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          {task.overdue && ' · Overdue'}
+                        </span>
+                      ) : (
+                        <span className="text-zinc-700">—</span>
+                      )}
                     </td>
                   </tr>
                 ))}
