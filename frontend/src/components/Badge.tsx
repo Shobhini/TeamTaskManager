@@ -1,22 +1,16 @@
 type StatusType = 'TODO' | 'IN_PROGRESS' | 'DONE';
 type PriorityType = 'LOW' | 'MEDIUM' | 'HIGH';
 
-const statusStyles: Record<StatusType, string> = {
-  TODO: 'bg-zinc-800 text-zinc-400',
-  IN_PROGRESS: 'bg-blue-500/15 text-blue-400',
-  DONE: 'bg-emerald-500/15 text-emerald-400',
+const statusConfig: Record<StatusType, { dot: string; text: string; bg: string; label: string }> = {
+  TODO:        { dot: 'bg-[#9B9B9B]', text: 'text-[#9B9B9B]', bg: 'bg-[#9B9B9B]/12', label: 'Todo' },
+  IN_PROGRESS: { dot: 'bg-[#447ACB]', text: 'text-[#447ACB]', bg: 'bg-[#447ACB]/15', label: 'In Progress' },
+  DONE:        { dot: 'bg-[#2D9964]', text: 'text-[#2D9964]', bg: 'bg-[#2D9964]/15', label: 'Done' },
 };
 
-const priorityStyles: Record<PriorityType, string> = {
-  HIGH: 'bg-red-500/15 text-red-400',
-  MEDIUM: 'bg-amber-500/15 text-amber-400',
-  LOW: 'bg-zinc-800 text-zinc-500',
-};
-
-const statusLabels: Record<StatusType, string> = {
-  TODO: 'Todo',
-  IN_PROGRESS: 'In Progress',
-  DONE: 'Done',
+const priorityConfig: Record<PriorityType, { text: string; bg: string; label: string }> = {
+  HIGH:   { text: 'text-[#CD4945]', bg: 'bg-[#CD4945]/12', label: 'High' },
+  MEDIUM: { text: 'text-[#CA8E1B]', bg: 'bg-[#CA8E1B]/12', label: 'Medium' },
+  LOW:    { text: 'text-[#6B6B6B]', bg: 'bg-[#6B6B6B]/12', label: 'Low' },
 };
 
 interface BadgeProps {
@@ -25,19 +19,20 @@ interface BadgeProps {
 }
 
 export default function Badge({ type, value }: BadgeProps) {
-  const styles =
-    type === 'status'
-      ? statusStyles[value as StatusType] ?? 'bg-zinc-800 text-zinc-400'
-      : priorityStyles[value as PriorityType] ?? 'bg-zinc-800 text-zinc-400';
+  if (type === 'status') {
+    const cfg = statusConfig[value as StatusType] ?? statusConfig.TODO;
+    return (
+      <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium ${cfg.bg} ${cfg.text}`}>
+        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${cfg.dot}`} />
+        {cfg.label}
+      </span>
+    );
+  }
 
-  const label =
-    type === 'status'
-      ? statusLabels[value as StatusType] ?? value
-      : value.charAt(0) + value.slice(1).toLowerCase();
-
+  const cfg = priorityConfig[value as PriorityType] ?? priorityConfig.LOW;
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium font-mono ${styles}`}>
-      {label}
+    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${cfg.bg} ${cfg.text}`}>
+      {cfg.label}
     </span>
   );
 }
