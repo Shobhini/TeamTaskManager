@@ -49,8 +49,8 @@ export default function TaskDetail() {
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [status, setStatus] = useState('');
-  const [priority, setPriority] = useState('');
+  const [status, setStatus] = useState<'TODO' | 'IN_PROGRESS' | 'DONE' | ''>('');
+  const [priority, setPriority] = useState<'LOW' | 'MEDIUM' | 'HIGH' | ''>('');
   const [dueDate, setDueDate] = useState('');
   const [assigneeId, setAssigneeId] = useState('');
   const [editingTitle, setEditingTitle] = useState(false);
@@ -206,6 +206,9 @@ export default function TaskDetail() {
               <h2
                 className={`text-2xl font-semibold text-white ${isAdmin ? 'cursor-pointer hover:text-[#D4D4D4]' : ''} transition-colors`}
                 onClick={() => isAdmin && setEditingTitle(true)}
+                onKeyDown={(e) => isAdmin && (e.key === 'Enter' || e.key === ' ') && setEditingTitle(true)}
+                role={isAdmin ? 'button' : undefined}
+                tabIndex={isAdmin ? 0 : undefined}
                 title={isAdmin ? 'Click to edit' : undefined}
               >
                 {task.title}
@@ -250,6 +253,9 @@ export default function TaskDetail() {
                   isAdmin ? 'cursor-pointer hover:bg-[#373C3F]' : ''
                 } transition-colors`}
                 onClick={() => isAdmin && setEditingDescription(true)}
+                onKeyDown={(e) => isAdmin && (e.key === 'Enter' || e.key === ' ') && setEditingDescription(true)}
+                role={isAdmin ? 'button' : undefined}
+                tabIndex={isAdmin ? 0 : undefined}
               >
                 {task.description ? (
                   <p className="text-sm text-[#D4D4D4] whitespace-pre-wrap">{task.description}</p>
@@ -277,7 +283,8 @@ export default function TaskDetail() {
             <p className={sectionLabel}>Status</p>
             <select
               value={status}
-              onChange={(e) => { setStatus(e.target.value); saveField({ status: e.target.value }); }}
+              onChange={(e) => { setStatus(e.target.value as 'TODO' | 'IN_PROGRESS' | 'DONE'); saveField({ status: e.target.value }); }}
+              disabled={saving}
               className={selectClass}
             >
               {STATUS_OPTIONS.map((s) => (
@@ -296,7 +303,8 @@ export default function TaskDetail() {
             {isAdmin ? (
               <select
                 value={priority}
-                onChange={(e) => { setPriority(e.target.value); saveField({ priority: e.target.value }); }}
+                onChange={(e) => { setPriority(e.target.value as 'LOW' | 'MEDIUM' | 'HIGH'); saveField({ priority: e.target.value }); }}
+                disabled={saving}
                 className={selectClass}
               >
                 {PRIORITY_OPTIONS.map((p) => (
@@ -319,6 +327,7 @@ export default function TaskDetail() {
               <select
                 value={assigneeId}
                 onChange={(e) => { setAssigneeId(e.target.value); saveField({ assigneeId: e.target.value || null }); }}
+                disabled={saving}
                 className={selectClass}
               >
                 <option value="">Unassigned</option>
@@ -350,6 +359,7 @@ export default function TaskDetail() {
                 type="date"
                 value={dueDate}
                 onChange={(e) => { setDueDate(e.target.value); saveField({ dueDate: e.target.value || undefined }); }}
+                disabled={saving}
                 className={selectClass}
               />
             ) : (
