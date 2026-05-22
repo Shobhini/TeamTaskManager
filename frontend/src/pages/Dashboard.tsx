@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { CheckSquare } from 'lucide-react';
 import Badge from '../components/Badge';
 import EmptyState from '../components/EmptyState';
 import PageHeader from '../components/PageHeader';
@@ -65,7 +66,7 @@ export default function Dashboard() {
           </div>
         ) : tasks.length === 0 ? (
           <EmptyState
-            icon="✓"
+            icon={CheckSquare}
             heading="No tasks assigned to you"
             subtext="Tasks assigned to you will appear here"
           />
