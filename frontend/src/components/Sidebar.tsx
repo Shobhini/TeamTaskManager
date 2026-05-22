@@ -18,13 +18,14 @@ interface Project {
 interface SidebarProps {
   open: boolean;
   onClose: () => void;
+  collapsed: boolean;
+  onCollapsedChange: (collapsed: boolean) => void;
 }
 
-export default function Sidebar({ open, onClose }: SidebarProps) {
+export default function Sidebar({ open, onClose, collapsed, onCollapsedChange }: SidebarProps) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
-  const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
     listProjects()
@@ -70,7 +71,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
 
         {/* Desktop collapse toggle */}
         <button
-          onClick={() => setCollapsed(!collapsed)}
+          onClick={() => onCollapsedChange(!collapsed)}
           className="hidden lg:flex w-6 h-6 items-center justify-center rounded text-[#6B6B6B] hover:text-[#D4D4D4] hover:bg-[#3F4448] transition-colors shrink-0"
           title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >

@@ -24,7 +24,7 @@ interface Summary {
 
 export default function Dashboard() {
   const [tasks, setTasks] = useState<DashboardTask[]>([]);
-  const [summary, setSummary] = useState<Summary>({ total: 0, inProgress: 0, overdue: 0 });
+  const [_summary, setSummary] = useState<Summary>({ total: 0, inProgress: 0, overdue: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -36,26 +36,9 @@ export default function Dashboard() {
       .finally(() => setLoading(false));
   }, []);
 
-  const metaPills = (
-    <div className="flex items-center gap-2">
-      <span className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-full px-3 py-1 text-xs text-zinc-400">
-        <span className="text-[#F5F5F5] font-medium">{summary.total}</span> total
-      </span>
-      <span className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-full px-3 py-1 text-xs text-zinc-400">
-        <span className="text-blue-400 font-medium">{summary.inProgress}</span> in progress
-      </span>
-      {summary.overdue > 0 && (
-        <span className="bg-red-500/10 border border-red-500/20 rounded-full px-3 py-1 text-xs">
-          <span className="text-red-400 font-medium">{summary.overdue}</span>
-          <span className="text-red-400/70"> overdue</span>
-        </span>
-      )}
-    </div>
-  );
-
   return (
     <div className="min-h-screen bg-[#111111]">
-      <PageHeader title="My Tasks" meta={metaPills} />
+      <PageHeader title="My Tasks" />
 
       <div className="px-8 py-6">
         {loading ? (

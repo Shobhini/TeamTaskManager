@@ -12,6 +12,7 @@ interface AppShellProps {
 
 export default function AppShell({ children }: AppShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
     <div className="flex min-h-screen bg-[#191919]">
@@ -23,9 +24,18 @@ export default function AppShell({ children }: AppShellProps) {
         />
       )}
 
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Sidebar
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        collapsed={sidebarCollapsed}
+        onCollapsedChange={setSidebarCollapsed}
+      />
 
-      <main className="flex-1 min-h-screen lg:ml-56 min-w-0">
+      <main
+        className={`flex-1 min-h-screen min-w-0 transition-[margin] duration-200 ${
+          sidebarCollapsed ? 'lg:ml-12' : 'lg:ml-56'
+        }`}
+      >
         <SidebarToggleContext.Provider value={() => setSidebarOpen(true)}>
           {children}
         </SidebarToggleContext.Provider>
