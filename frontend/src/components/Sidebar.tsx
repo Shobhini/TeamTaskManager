@@ -1,5 +1,10 @@
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  LayoutDashboard, FolderOpen, LogOut,
+  ChevronLeft, ChevronRight, X, Circle,
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { listProjects } from '../api/projects';
 import Avatar from './Avatar';
@@ -10,10 +15,16 @@ interface Project {
   role: string;
 }
 
-export default function Sidebar() {
+interface SidebarProps {
+  open: boolean;
+  onClose: () => void;
+}
+
+export default function Sidebar({ open, onClose }: SidebarProps) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
+  const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
     listProjects()
@@ -26,45 +37,95 @@ export default function Sidebar() {
     navigate('/login');
   }
 
-  const navItemClass = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
-      isActive
-        ? 'bg-blue-500/15 text-blue-400 font-medium'
-        : 'text-zinc-400 hover:text-zinc-200 hover:bg-[#222222]'
-    }`;
+  const width = collapsed ? 48 : 224;
 
-  return (
-    <aside className="fixed left-0 top-0 h-screen w-60 bg-[#0A0A0A] border-r border-[#2A2A2A] flex flex-col z-40">
-      {/* Logo */}
-      <div className="px-4 py-5 border-b border-[#2A2A2A]">
-        <Link to="/dashboard" className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-blue-600 rounded-md flex items-center justify-center">
-            <span className="text-white text-xs font-bold">TT</span>
-          </div>
-          <span className="text-[#F5F5F5] font-semibold text-sm">TeamTask</span>
-        </Link>
+  const navItemBase = 'flex items-center gap-2 px-2 py-1.5 rounded-md text-sm font-medium transition-colors duration-150';
+  const navItemActive = 'bg-[#454B4E] text-white';
+  const navItemInactive = 'text-[#D4D4D4] hover:bg-[#3F4448]';
+
+  const navItemClass = ({ isActive }: { isActive: boolean }) =>
+    `${navItemBase} ${isActive ? navItemActive : navItemInactive}`;
+
+  const sidebarContent = (
+    <div className="flex flex-col h-full overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center justify-between px-3 py-3 shrink-0">
+        <AnimatePresence>
+          {!collapsed && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+            >
+              <Link to="/dashboard" className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-indigo-600 rounded-md flex items-center justify-center shrink-0">
+                  <span className="text-white text-[10px] font-bold">TT</span>
+                </div>
+                <span className="text-white font-semibold text-sm">TeamTask</span>
+              </Link>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Desktop collapse toggle */}
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="hidden lg:flex w-6 h-6 items-center justify-center rounded text-[#6B6B6B] hover:text-[#D4D4D4] hover:bg-[#3F4448] transition-colors shrink-0"
+          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+        </button>
+
+        {/* Mobile close */}
+        <button
+          onClick={onClose}
+          className="lg:hidden w-6 h-6 flex items-center justify-center rounded text-[#6B6B6B] hover:text-[#D4D4D4] hover:bg-[#3F4448] transition-colors"
+        >
+          <X size={14} />
+        </button>
       </div>
 
       {/* Nav */}
-      <nav className="px-3 py-4 space-y-1">
-        <NavLink to="/dashboard" className={navItemClass}>
-          <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h10" />
-          </svg>
-          Dashboard
+      <nav className="px-2 space-y-0.5 shrink-0">
+        <NavLink to="/dashboard" className={navItemClass} title="Dashboard">
+          <LayoutDashboard size={16} className="shrink-0" />
+          <AnimatePresence>
+            {!collapsed && (
+              <motion.span
+                initial={{ opacity: 0, width: 0 }}
+                animate={{ opacity: 1, width: 'auto' }}
+                exit={{ opacity: 0, width: 0 }}
+                transition={{ duration: 0.15 }}
+                className="overflow-hidden whitespace-nowrap"
+              >
+                Dashboard
+              </motion.span>
+            )}
+          </AnimatePresence>
         </NavLink>
-        <NavLink to="/projects" className={navItemClass}>
-          <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7h18M3 12h18M3 17h18" />
-          </svg>
-          Projects
+        <NavLink to="/projects" className={navItemClass} title="Projects">
+          <FolderOpen size={16} className="shrink-0" />
+          <AnimatePresence>
+            {!collapsed && (
+              <motion.span
+                initial={{ opacity: 0, width: 0 }}
+                animate={{ opacity: 1, width: 'auto' }}
+                exit={{ opacity: 0, width: 0 }}
+                transition={{ duration: 0.15 }}
+                className="overflow-hidden whitespace-nowrap"
+              >
+                Projects
+              </motion.span>
+            )}
+          </AnimatePresence>
         </NavLink>
       </nav>
 
       {/* Project list */}
-      {projects.length > 0 && (
-        <div className="px-3 pb-2">
-          <p className="text-[10px] font-semibold text-zinc-600 uppercase tracking-wider px-3 mb-2">
+      {!collapsed && projects.length > 0 && (
+        <div className="px-2 mt-4 shrink-0">
+          <p className="text-[10px] font-semibold text-[#6B6B6B] uppercase tracking-widest px-2 mb-1">
             My Projects
           </p>
           <div className="space-y-0.5">
@@ -73,14 +134,14 @@ export default function Sidebar() {
                 key={p.id}
                 to={`/projects/${p.id}`}
                 className={({ isActive }) =>
-                  `flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                  `flex items-center gap-2 px-2 py-1.5 rounded-md text-[13px] transition-colors duration-150 ${
                     isActive
-                      ? 'text-blue-400 bg-blue-500/10'
-                      : 'text-zinc-500 hover:text-zinc-300 hover:bg-[#1A1A1A]'
+                      ? 'bg-[#454B4E] text-[#D4D4D4]'
+                      : 'text-[#9B9B9B] hover:bg-[#3F4448] hover:text-[#D4D4D4]'
                   }`
                 }
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-current shrink-0" />
+                <Circle size={6} className="shrink-0 fill-current" />
                 <span className="truncate">{p.name}</span>
               </NavLink>
             ))}
@@ -89,23 +150,67 @@ export default function Sidebar() {
       )}
 
       {/* User block */}
-      <div className="mt-auto border-t border-[#2A2A2A] p-4">
-        <div className="flex items-center gap-3">
-          <Avatar name={user?.email ?? 'U'} size="md" />
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-zinc-300 truncate">{user?.email}</p>
-          </div>
-          <button
-            onClick={handleLogout}
-            title="Logout"
-            className="text-zinc-500 hover:text-red-400 transition-colors shrink-0"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-          </button>
+      <div className="mt-auto border-t border-white/[0.08] p-2 shrink-0">
+        <div className="flex items-center gap-2 px-1 py-1">
+          <Avatar name={user?.email ?? 'U'} size={collapsed ? 'sm' : 'md'} />
+          <AnimatePresence>
+            {!collapsed && (
+              <motion.div
+                initial={{ opacity: 0, width: 0 }}
+                animate={{ opacity: 1, width: 'auto' }}
+                exit={{ opacity: 0, width: 0 }}
+                transition={{ duration: 0.15 }}
+                className="flex-1 min-w-0 overflow-hidden"
+              >
+                <p className="text-[12px] text-[#D4D4D4] truncate">{user?.email}</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <AnimatePresence>
+            {!collapsed && (
+              <motion.button
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={handleLogout}
+                title="Sign out"
+                className="text-[#6B6B6B] hover:text-[#CD4945] transition-colors shrink-0"
+              >
+                <LogOut size={14} />
+              </motion.button>
+            )}
+          </AnimatePresence>
         </div>
       </div>
-    </aside>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Desktop sidebar */}
+      <motion.aside
+        animate={{ width }}
+        transition={{ duration: 0.2, ease: 'easeInOut' }}
+        className="hidden lg:flex flex-col fixed left-0 top-0 h-screen bg-[#373C3F] border-r border-white/[0.08] z-40 overflow-hidden"
+      >
+        {sidebarContent}
+      </motion.aside>
+
+      {/* Mobile sidebar */}
+      <AnimatePresence>
+        {open && (
+          <motion.aside
+            initial={{ x: -224 }}
+            animate={{ x: 0 }}
+            exit={{ x: -224 }}
+            transition={{ duration: 0.2, ease: 'easeInOut' }}
+            style={{ width: 224 }}
+            className="flex lg:hidden flex-col fixed left-0 top-0 h-screen bg-[#373C3F] border-r border-white/[0.08] z-50 overflow-hidden"
+          >
+            {sidebarContent}
+          </motion.aside>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
