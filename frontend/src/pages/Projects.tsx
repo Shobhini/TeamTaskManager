@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Plus, X, FolderOpen } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
+import EmptyState from '../components/EmptyState';
 import * as projectsApi from '../api/projects';
 
 interface Project {
@@ -10,6 +13,8 @@ interface Project {
   description: string | null;
   role: string;
 }
+
+const inputClass = 'w-full bg-[#373C3F] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-[#D4D4D4] placeholder-[#6B6B6B] focus:outline-none focus:border-[#447ACB] transition-colors';
 
 export default function Projects() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -33,127 +38,183 @@ export default function Projects() {
       setShowModal(false);
       setName('');
       setDescription('');
-    } catch (err: any) {
-      setError(err.response?.data?.error ?? 'Failed to create project');
+    } catch (err) {
+      const axiosErr = err as { response?: { data?: { error?: string } } };
+      setError(axiosErr.response?.data?.error ?? 'Failed to create project');
     } finally {
       setCreating(false);
     }
   }
 
+  function closeModal() {
+    setShowModal(false);
+    setError('');
+    setName('');
+    setDescription('');
+  }
+
   const actionButton = (
     <button
       onClick={() => setShowModal(true)}
-      className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+      className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
     >
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-      </svg>
+      <Plus size={16} />
       New Project
     </button>
   );
 
   return (
-    <div className="min-h-screen bg-[#111111]">
+    <motion.div
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2, ease: 'easeOut' }}
+      className="min-h-screen bg-[#191919]"
+    >
       <PageHeader title="Projects" action={actionButton} />
 
-      <div className="px-8 py-6">
+      <div className="px-6 py-6">
         {projects.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <span className="text-4xl text-zinc-700 mb-4">◫</span>
-            <p className="text-zinc-400 font-medium">No projects yet</p>
-            <p className="text-zinc-600 text-sm mt-1">Create a project to get started</p>
-            <button
-              onClick={() => setShowModal(true)}
-              className="mt-4 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-            >
-              New Project
-            </button>
-          </div>
+          <EmptyState
+            icon={FolderOpen}
+            heading="No projects yet"
+            subtext="Create a project to start managing tasks with your team"
+            action={
+              <button
+                onClick={() => setShowModal(true)}
+                className="flex items-center gap-1.5 text-indigo-400 hover:text-indigo-300 text-sm transition-colors"
+              >
+                <Plus size={14} />
+                New Project
+              </button>
+            }
+          />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {projects.map((project) => (
-              <Link
+            {projects.map((project, index) => (
+              <motion.div
                 key={project.id}
-                to={`/projects/${project.id}`}
-                className="group bg-[#1A1A1A] border border-[#2A2A2A] hover:border-blue-500/40 rounded-xl p-5 transition-colors"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05, duration: 0.2 }}
+                whileHover={{ y: -2 }}
               >
-                <div className="flex items-start justify-between mb-2">
-                  <h2 className="font-semibold text-[#F5F5F5] group-hover:text-blue-400 transition-colors">
-                    {project.name}
-                  </h2>
-                  <span
-                    className={`text-xs px-2 py-0.5 rounded-md font-mono font-medium shrink-0 ml-2 ${
-                      project.role === 'ADMIN'
-                        ? 'bg-blue-500/15 text-blue-400'
-                        : 'bg-zinc-800 text-zinc-500'
-                    }`}
-                  >
-                    {project.role}
-                  </span>
-                </div>
-                {project.description ? (
-                  <p className="text-sm text-zinc-500 line-clamp-2">{project.description}</p>
-                ) : (
-                  <p className="text-sm text-zinc-700">No description</p>
-                )}
-              </Link>
+                <Link
+                  to={`/projects/${project.id}`}
+                  className="block bg-[#2F3437] border border-white/[0.08] hover:border-white/20 hover:shadow-lg rounded-xl p-5 transition-all group"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <h2 className="font-semibold text-[#D4D4D4] group-hover:text-white text-[15px] leading-tight">
+                      {project.name}
+                    </h2>
+                    <span
+                      className={`text-[10px] px-2 py-0.5 rounded font-medium shrink-0 ml-2 mt-0.5 ${
+                        project.role === 'ADMIN'
+                          ? 'bg-indigo-500/15 text-indigo-400'
+                          : 'bg-white/[0.08] text-[#6B6B6B]'
+                      }`}
+                    >
+                      {project.role}
+                    </span>
+                  </div>
+                  {project.description ? (
+                    <p className="text-[13px] text-[#9B9B9B] line-clamp-2">{project.description}</p>
+                  ) : (
+                    <p className="text-[13px] text-[#454B4E]">No description</p>
+                  )}
+                </Link>
+              </motion.div>
             ))}
           </div>
         )}
       </div>
 
       {/* Create Project Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4">
-          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6 w-full max-w-md shadow-2xl">
-            <h2 className="text-[#F5F5F5] font-semibold mb-5">New Project</h2>
-            {error && (
-              <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2 mb-4">
-                <p className="text-red-400 text-sm">{error}</p>
-              </div>
-            )}
-            <form onSubmit={handleCreate} className="space-y-4">
-              <div>
-                <label className="block text-xs font-medium text-zinc-400 mb-1.5">Project name</label>
-                <input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                  placeholder="My Project"
-                  className="w-full bg-[#111111] border border-[#2A2A2A] rounded-lg px-3 py-2 text-sm text-[#F5F5F5] placeholder-zinc-600 focus:outline-none focus:border-blue-500 transition-colors"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-zinc-400 mb-1.5">
-                  Description <span className="text-zinc-600">(optional)</span>
-                </label>
-                <input
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="What's this project about?"
-                  className="w-full bg-[#111111] border border-[#2A2A2A] rounded-lg px-3 py-2 text-sm text-[#F5F5F5] placeholder-zinc-600 focus:outline-none focus:border-blue-500 transition-colors"
-                />
-              </div>
-              <div className="flex gap-3 pt-1">
-                <button
-                  type="submit"
-                  disabled={creating}
-                  className="flex-1 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white py-2 rounded-lg text-sm font-medium transition-colors"
-                >
-                  {creating ? 'Creating...' : 'Create Project'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setShowModal(false); setError(''); }}
-                  className="flex-1 border border-[#2A2A2A] text-zinc-400 hover:text-zinc-200 hover:bg-[#222222] py-2 rounded-lg text-sm transition-colors"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-    </div>
+      <AnimatePresence>
+        {showModal && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="fixed inset-0 bg-black/70 z-50"
+              onClick={closeModal}
+            />
+            <div className="fixed inset-0 flex items-center justify-center z-50 px-4 pointer-events-none">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.97, y: 8 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.97, y: 8 }}
+                transition={{ duration: 0.2, ease: 'easeOut' }}
+                className="bg-[#2F3437] border border-white/10 rounded-xl p-6 w-full max-w-md shadow-2xl pointer-events-auto"
+              >
+                <div className="flex items-center justify-between mb-5">
+                  <h2 className="text-white font-semibold">New Project</h2>
+                  <button
+                    type="button"
+                    onClick={closeModal}
+                    className="text-[#6B6B6B] hover:text-[#D4D4D4] transition-colors"
+                    aria-label="Close modal"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+
+                {error && (
+                  <div className="bg-[#CD4945]/10 border border-[#CD4945]/20 rounded-lg px-3 py-2 mb-4">
+                    <p className="text-[#CD4945] text-sm">{error}</p>
+                  </div>
+                )}
+
+                <form onSubmit={handleCreate} className="space-y-4">
+                  <div>
+                    <label htmlFor="project-name" className="block text-[11px] font-semibold text-[#6B6B6B] uppercase tracking-widest mb-1.5">
+                      Project name
+                    </label>
+                    <input
+                      id="project-name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required
+                      placeholder="My Project"
+                      className={inputClass}
+                      autoFocus
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="project-description" className="block text-[11px] font-semibold text-[#6B6B6B] uppercase tracking-widest mb-1.5">
+                      Description <span className="normal-case font-normal text-[#454B4E]">optional</span>
+                    </label>
+                    <input
+                      id="project-description"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="What's this project about?"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div className="space-y-2 pt-1">
+                    <button
+                      type="submit"
+                      disabled={creating}
+                      className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white py-2 rounded-lg text-sm font-medium transition-colors"
+                    >
+                      {creating ? 'Creating...' : 'Create Project'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={closeModal}
+                      className="w-full text-[#6B6B6B] hover:text-[#D4D4D4] py-2 text-sm transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
+            </div>
+          </>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }
