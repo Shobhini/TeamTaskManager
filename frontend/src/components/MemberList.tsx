@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { X } from 'lucide-react';
 import Avatar from './Avatar';
 import * as membersApi from '../api/members';
 
@@ -47,30 +48,30 @@ export default function MemberList({ members, projectId, isAdmin, onMembersChang
 
   return (
     <div>
-      <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">
+      <h3 className="text-[10px] font-semibold text-[#6B6B6B] uppercase tracking-widest mb-3">
         Members ({members.length})
       </h3>
 
       {error && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-1.5 mb-3">
-          <p className="text-red-400 text-xs">{error}</p>
+        <div className="bg-[#CD4945]/10 border border-[#CD4945]/20 rounded-lg px-3 py-1.5 mb-3">
+          <p className="text-[#CD4945] text-xs">{error}</p>
         </div>
       )}
 
-      <ul className="space-y-2 mb-4">
+      <ul className="space-y-1 mb-4">
         {members.map((m) => (
-          <li key={m.id} className="flex items-center gap-2.5 group">
-            <Avatar name={m.user.name} size="sm" />
+          <li key={m.id} className="flex items-center gap-2.5 py-1 group">
+            <Avatar name={m.user.name} size="md" />
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-zinc-300 truncate">{m.user.name}</p>
-              <p className="text-xs text-zinc-600 truncate">{m.user.email}</p>
+              <p className="text-[13px] font-medium text-[#D4D4D4] truncate">{m.user.name}</p>
+              <p className="text-[11px] text-[#6B6B6B] truncate">{m.user.email}</p>
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
               <span
-                className={`text-xs px-1.5 py-0.5 rounded font-mono ${
+                className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
                   m.role === 'ADMIN'
-                    ? 'bg-blue-500/15 text-blue-400'
-                    : 'bg-zinc-800 text-zinc-500'
+                    ? 'bg-indigo-500/15 text-indigo-400'
+                    : 'bg-white/8 text-[#6B6B6B]'
                 }`}
               >
                 {m.role}
@@ -78,12 +79,10 @@ export default function MemberList({ members, projectId, isAdmin, onMembersChang
               {isAdmin && (
                 <button
                   onClick={() => handleRemove(m.userId)}
-                  className="opacity-0 group-hover:opacity-100 text-zinc-600 hover:text-red-400 transition-all"
+                  className="opacity-0 group-hover:opacity-100 text-[#6B6B6B] hover:text-[#CD4945] transition-all"
                   title="Remove member"
                 >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                  <X size={14} />
                 </button>
               )}
             </div>
@@ -99,12 +98,12 @@ export default function MemberList({ members, projectId, isAdmin, onMembersChang
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAdd())}
-            className="flex-1 bg-[#111111] border border-[#2A2A2A] rounded-lg px-2.5 py-1.5 text-xs text-[#F5F5F5] placeholder-zinc-600 focus:outline-none focus:border-blue-500 transition-colors"
+            className="flex-1 bg-[#373C3F] border border-white/[0.08] rounded-lg px-2.5 py-1.5 text-xs text-[#D4D4D4] placeholder-[#6B6B6B] focus:outline-none focus:border-[#447ACB] transition-colors"
           />
           <button
             onClick={handleAdd}
             disabled={adding || !email.trim()}
-            className="bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+            className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
           >
             {adding ? '...' : 'Add'}
           </button>
