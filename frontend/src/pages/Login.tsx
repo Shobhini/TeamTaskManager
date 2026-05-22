@@ -25,8 +25,9 @@ export default function Login() {
       const res = await authApi.login({ email, password });
       login(res.data.token);
       navigate('/dashboard');
-    } catch (err: any) {
-      setError(err.response?.data?.error ?? 'Invalid email or password');
+    } catch (err) {
+      const axiosErr = err as { response?: { data?: { error?: string } } };
+      setError(axiosErr.response?.data?.error ?? 'Invalid email or password');
     } finally {
       setLoading(false);
     }
@@ -60,33 +61,39 @@ export default function Login() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-[11px] font-semibold text-[#6B6B6B] uppercase tracking-widest mb-1.5">
+                <label htmlFor="email" className="block text-[11px] font-semibold text-[#6B6B6B] uppercase tracking-widest mb-1.5">
                   Email
                 </label>
                 <input
+                  id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   placeholder="you@example.com"
+                  autoComplete="email"
+                  autoFocus
                   className={inputClass}
                 />
               </div>
               <div>
-                <label className="block text-[11px] font-semibold text-[#6B6B6B] uppercase tracking-widest mb-1.5">
+                <label htmlFor="password" className="block text-[11px] font-semibold text-[#6B6B6B] uppercase tracking-widest mb-1.5">
                   Password
                 </label>
                 <div className="relative">
                   <input
+                    id="password"
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     placeholder="••••••••"
+                    autoComplete="current-password"
                     className={`${inputClass} pr-10`}
                   />
                   <button
                     type="button"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6B6B6B] hover:text-[#D4D4D4] transition-colors"
                   >

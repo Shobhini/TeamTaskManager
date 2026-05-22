@@ -26,8 +26,9 @@ export default function Signup() {
       const res = await authApi.signup({ name, email, password });
       login(res.data.token);
       navigate('/dashboard');
-    } catch (err: any) {
-      setError(err.response?.data?.error ?? 'Failed to create account');
+    } catch (err) {
+      const axiosErr = err as { response?: { data?: { error?: string } } };
+      setError(axiosErr.response?.data?.error ?? 'Failed to create account');
     } finally {
       setLoading(false);
     }
@@ -61,47 +62,54 @@ export default function Signup() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-[11px] font-semibold text-[#6B6B6B] uppercase tracking-widest mb-1.5">
+                <label htmlFor="name" className="block text-[11px] font-semibold text-[#6B6B6B] uppercase tracking-widest mb-1.5">
                   Name
                 </label>
                 <input
+                  id="name"
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
                   placeholder="John Doe"
+                  autoComplete="name"
                   className={inputClass}
                 />
               </div>
               <div>
-                <label className="block text-[11px] font-semibold text-[#6B6B6B] uppercase tracking-widest mb-1.5">
+                <label htmlFor="email" className="block text-[11px] font-semibold text-[#6B6B6B] uppercase tracking-widest mb-1.5">
                   Email
                 </label>
                 <input
+                  id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   placeholder="you@example.com"
+                  autoComplete="email"
                   className={inputClass}
                 />
               </div>
               <div>
-                <label className="block text-[11px] font-semibold text-[#6B6B6B] uppercase tracking-widest mb-1.5">
+                <label htmlFor="password" className="block text-[11px] font-semibold text-[#6B6B6B] uppercase tracking-widest mb-1.5">
                   Password <span className="normal-case font-normal text-[#454B4E]">(min 8 chars)</span>
                 </label>
                 <div className="relative">
                   <input
+                    id="password"
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     minLength={8}
                     placeholder="••••••••"
+                    autoComplete="new-password"
                     className={`${inputClass} pr-10`}
                   />
                   <button
                     type="button"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6B6B6B] hover:text-[#D4D4D4] transition-colors"
                   >
