@@ -10,8 +10,8 @@ import { getDashboard } from '../api/dashboard';
 interface DashboardTask {
   id: string;
   title: string;
-  status: string;
-  priority: string;
+  status: 'TODO' | 'IN_PROGRESS' | 'DONE';
+  priority: 'LOW' | 'MEDIUM' | 'HIGH';
   dueDate: string | null;
   overdue: boolean;
   project: { id: string; name: string };
@@ -43,7 +43,7 @@ function MobileTaskCard({ task, index }: { task: DashboardTask; index: number })
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04, duration: 0.2 }}
       onClick={() => navigate(`/projects/${task.project.id}/tasks/${task.id}`)}
-      className={`bg-[#2F3437] border border-white/10 rounded-xl p-4 cursor-pointer active:bg-[#373C3F] ${
+      className={`bg-[#2F3437] border border-white/[0.08] rounded-xl p-4 cursor-pointer active:bg-[#373C3F] ${
         task.overdue ? 'border-l-2 border-l-[#CD4945]' : ''
       }`}
     >
@@ -79,6 +79,7 @@ export default function Dashboard() {
   const [tasks, setTasks] = useState<DashboardTask[]>([]);
   const [summary, setSummary] = useState<Summary>({ total: 0, inProgress: 0, overdue: 0 });
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
 
   useEffect(() => {
     getDashboard()
@@ -86,6 +87,7 @@ export default function Dashboard() {
         setTasks(res.data.tasks);
         setSummary(res.data.summary);
       })
+      .catch(() => setFetchError(true))
       .finally(() => setLoading(false));
   }, []);
 
@@ -112,6 +114,14 @@ export default function Dashboard() {
           </span>
         )}
       </div>
+
+      {fetchError && (
+        <div className="px-6 pb-2">
+          <div className="bg-[#CD4945]/10 border border-[#CD4945]/20 rounded-lg px-4 py-2">
+            <p className="text-[#CD4945] text-sm">Failed to load tasks. Please refresh the page.</p>
+          </div>
+        </div>
+      )}
 
       <div className="px-6 py-4">
         {loading ? (
@@ -167,6 +177,7 @@ export default function Dashboard() {
                         key={task.id}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
                         transition={{ delay: index * 0.03 }}
                         onClick={() => navigate(`/projects/${task.project.id}/tasks/${task.id}`)}
                         className={`border-t border-white/[0.06] hover:bg-[#373C3F] transition-colors cursor-pointer ${
