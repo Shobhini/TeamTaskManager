@@ -27,10 +27,10 @@ export default function TaskCard({ task, projectId }: { task: Task; projectId: s
     >
       <Link
         to={`/projects/${projectId}/tasks/${task.id}`}
-        className="block bg-[#2F3437] border border-white/10 hover:border-white/20 rounded-lg p-3 transition-colors"
+        className="group block bg-[#2F3437] border border-white/10 hover:border-white/20 rounded-lg p-3 transition-colors"
         style={borderColor ? { borderLeft: `3px solid ${borderColor}` } : undefined}
       >
-        <p className="text-[13px] font-medium text-[#D4D4D4] leading-snug mb-2">
+        <p className="text-[13px] font-medium text-[#D4D4D4] group-hover:text-white leading-snug mb-2">
           {task.title}
         </p>
 

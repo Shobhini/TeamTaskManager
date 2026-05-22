@@ -101,6 +101,7 @@ export default function MemberList({ members, projectId, isAdmin, onMembersChang
             className="flex-1 bg-[#373C3F] border border-white/[0.08] rounded-lg px-2.5 py-1.5 text-xs text-[#D4D4D4] placeholder-[#6B6B6B] focus:outline-none focus:border-[#447ACB] transition-colors"
           />
           <button
+            type="button"
             onClick={handleAdd}
             disabled={adding || !email.trim()}
             className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
