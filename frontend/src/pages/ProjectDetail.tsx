@@ -47,6 +47,7 @@ export default function ProjectDetail() {
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [showMembers, setShowMembers] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
   const [openColumn, setOpenColumn] = useState<string>('TODO');
 
   const myMembership = project?.members.find((m) => m.userId === user?.userId);
@@ -59,6 +60,7 @@ export default function ProjectDetail() {
         setProject(projRes.data.project);
         setTasks(tasksRes.data.tasks);
       })
+      .catch(() => setFetchError(true))
       .finally(() => setLoading(false));
   }, [id]);
 
@@ -83,6 +85,14 @@ export default function ProjectDetail() {
             <div key={i} className="flex-1 bg-[#2F3437] rounded-xl h-64 animate-pulse" />
           ))}
         </div>
+      </div>
+    );
+  }
+
+  if (fetchError) {
+    return (
+      <div className="min-h-screen bg-[#191919] flex items-center justify-center">
+        <p className="text-[#CD4945]">Failed to load project. Please refresh the page.</p>
       </div>
     );
   }
@@ -201,6 +211,7 @@ export default function ProjectDetail() {
                 <div key={col.key} className="bg-[#2F3437]/40 border border-white/[0.06] rounded-xl overflow-hidden">
                   <button
                     type="button"
+                    aria-expanded={isOpen}
                     onClick={() => setOpenColumn(isOpen ? '' : col.key)}
                     className="w-full flex items-center justify-between px-4 py-3"
                   >
