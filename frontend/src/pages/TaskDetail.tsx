@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { ArrowLeft, Trash2, Lock } from 'lucide-react';
 import Badge from '../components/Badge';
 import Avatar from '../components/Avatar';
 import ConfirmModal from '../components/ConfirmModal';
@@ -15,8 +17,8 @@ interface Task {
   id: string;
   title: string;
   description: string | null;
-  status: string;
-  priority: string;
+  status: 'TODO' | 'IN_PROGRESS' | 'DONE';
+  priority: 'LOW' | 'MEDIUM' | 'HIGH';
   dueDate: string | null;
   assignee: { id: string; name: string } | null;
   createdBy: { id: string; name: string };
@@ -28,7 +30,8 @@ interface Member {
   user: { id: string; name: string; email: string };
 }
 
-const inputClass = 'w-full bg-[#111111] border border-[#2A2A2A] rounded-lg px-3 py-2 text-sm text-[#F5F5F5] focus:outline-none focus:border-blue-500 transition-colors';
+const selectClass = 'w-full bg-[#373C3F] border-none rounded-lg px-3 py-2 text-sm text-[#D4D4D4] focus:outline-none focus:ring-1 focus:ring-[#447ACB] transition-colors';
+const sectionLabel = 'text-[11px] font-semibold text-[#6B6B6B] uppercase tracking-widest mb-2';
 
 export default function TaskDetail() {
   const { id, taskId } = useParams<{ id: string; taskId: string }>();
@@ -39,11 +42,11 @@ export default function TaskDetail() {
   const [members, setMembers] = useState<Member[]>([]);
   const [projectName, setProjectName] = useState('');
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  // Edit state
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState('');
@@ -71,6 +74,7 @@ export default function TaskDetail() {
         setDueDate(t.dueDate ? t.dueDate.slice(0, 10) : '');
         setAssigneeId(t.assignee?.id ?? '');
       })
+      .catch(() => setFetchError(true))
       .finally(() => setLoading(false));
   }, [id, taskId]);
 
@@ -80,8 +84,9 @@ export default function TaskDetail() {
     try {
       const res = await tasksApi.updateTask(id!, taskId!, field);
       setTask(res.data.task);
-    } catch (err: any) {
-      setError(err.response?.data?.error ?? 'Failed to save');
+    } catch (err) {
+      const axiosErr = err as { response?: { data?: { error?: string } } };
+      setError(axiosErr.response?.data?.error ?? 'Failed to save');
     } finally {
       setSaving(false);
     }
@@ -91,51 +96,62 @@ export default function TaskDetail() {
     try {
       await tasksApi.deleteTask(id!, taskId!);
       navigate(`/projects/${id}`);
-    } catch (err: any) {
-      setError(err.response?.data?.error ?? 'Failed to delete');
+    } catch (err) {
+      const axiosErr = err as { response?: { data?: { error?: string } } };
+      setError(axiosErr.response?.data?.error ?? 'Failed to delete');
       setShowDeleteModal(false);
     }
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#111111]">
-        <div className="h-16 border-b border-[#2A2A2A] animate-pulse bg-[#1A1A1A]" />
-        <div className="px-8 py-6 grid grid-cols-3 gap-8">
-          <div className="col-span-2 space-y-4">
-            <div className="h-8 bg-[#1A1A1A] rounded animate-pulse" />
-            <div className="h-32 bg-[#1A1A1A] rounded animate-pulse" />
+      <div className="min-h-screen bg-[#191919]">
+        <div className="h-12 border-b border-white/[0.08] animate-pulse bg-[#2F3437]" />
+        <div className="px-6 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-4">
+            <div className="h-8 bg-[#2F3437] rounded-lg animate-pulse" />
+            <div className="h-32 bg-[#2F3437] rounded-xl animate-pulse" />
           </div>
-          <div className="h-64 bg-[#1A1A1A] rounded-xl animate-pulse" />
+          <div className="h-64 bg-[#2F3437] rounded-xl animate-pulse" />
         </div>
+      </div>
+    );
+  }
+
+  if (fetchError) {
+    return (
+      <div className="min-h-screen bg-[#191919] flex items-center justify-center">
+        <p className="text-[#CD4945]">Failed to load task. Please refresh the page.</p>
       </div>
     );
   }
 
   if (!task) {
     return (
-      <div className="min-h-screen bg-[#111111] flex items-center justify-center">
-        <p className="text-zinc-500">Task not found.</p>
+      <div className="min-h-screen bg-[#191919] flex items-center justify-center">
+        <p className="text-[#6B6B6B]">Task not found.</p>
       </div>
     );
   }
 
-  const breadcrumb = `Projects / ${projectName}`;
-
   return (
-    <div className="min-h-screen bg-[#111111]">
+    <motion.div
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2, ease: 'easeOut' }}
+      className="min-h-screen bg-[#191919]"
+    >
       <PageHeader
         title={task.title}
-        breadcrumb={breadcrumb}
+        breadcrumb={projectName}
         action={
           isAdmin ? (
             <button
+              type="button"
               onClick={() => setShowDeleteModal(true)}
-              className="flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:text-red-300 border border-red-500/20 hover:border-red-500/40 rounded-lg transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-[#CD4945] hover:text-red-300 border border-[#CD4945]/20 hover:border-[#CD4945]/40 rounded-lg transition-colors"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
+              <Trash2 size={14} />
               Delete
             </button>
           ) : undefined
@@ -143,14 +159,23 @@ export default function TaskDetail() {
       />
 
       {error && (
-        <div className="mx-8 mt-4 bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-2">
-          <p className="text-red-400 text-sm">{error}</p>
+        <div className="mx-6 mt-4 bg-[#CD4945]/10 border border-[#CD4945]/20 rounded-lg px-4 py-2">
+          <p className="text-[#CD4945] text-sm">{error}</p>
         </div>
       )}
 
-      <div className="px-8 py-6 grid grid-cols-3 gap-8">
+      <div className="px-6 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left: Title + Description */}
-        <div className="col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-6">
+          {/* Back link */}
+          <Link
+            to={`/projects/${id}`}
+            className="inline-flex items-center gap-1.5 text-[#6B6B6B] hover:text-[#D4D4D4] text-sm transition-colors"
+          >
+            <ArrowLeft size={14} />
+            {projectName}
+          </Link>
+
           {/* Title */}
           <div>
             {editingTitle && isAdmin ? (
@@ -158,26 +183,28 @@ export default function TaskDetail() {
                 <input
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="flex-1 bg-[#1A1A1A] border border-blue-500 rounded-lg px-3 py-2 text-lg font-semibold text-[#F5F5F5] focus:outline-none"
+                  className="flex-1 bg-[#2F3437] border border-[#447ACB] rounded-lg px-3 py-2 text-2xl font-semibold text-white focus:outline-none"
                   autoFocus
                 />
                 <button
+                  type="button"
                   onClick={() => { saveField({ title }); setEditingTitle(false); }}
                   disabled={saving}
-                  className="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm disabled:opacity-50"
+                  className="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm disabled:opacity-50"
                 >
                   Save
                 </button>
                 <button
+                  type="button"
                   onClick={() => { setTitle(task.title); setEditingTitle(false); }}
-                  className="px-3 py-2 border border-[#2A2A2A] text-zinc-400 hover:text-zinc-200 rounded-lg text-sm"
+                  className="px-3 py-2 border border-white/[0.08] text-[#9B9B9B] hover:text-[#D4D4D4] rounded-lg text-sm"
                 >
                   Cancel
                 </button>
               </div>
             ) : (
               <h2
-                className={`text-xl font-semibold text-[#F5F5F5] ${isAdmin ? 'cursor-pointer hover:text-blue-400' : ''} transition-colors`}
+                className={`text-2xl font-semibold text-white ${isAdmin ? 'cursor-pointer hover:text-[#D4D4D4]' : ''} transition-colors`}
                 onClick={() => isAdmin && setEditingTitle(true)}
                 title={isAdmin ? 'Click to edit' : undefined}
               >
@@ -188,7 +215,7 @@ export default function TaskDetail() {
 
           {/* Description */}
           <div>
-            <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-2">Description</p>
+            <p className={sectionLabel}>Description</p>
             {editingDescription && isAdmin ? (
               <div className="space-y-2">
                 <textarea
@@ -196,20 +223,22 @@ export default function TaskDetail() {
                   onChange={(e) => setDescription(e.target.value)}
                   rows={5}
                   placeholder="Add a description..."
-                  className="w-full bg-[#1A1A1A] border border-blue-500 rounded-lg px-3 py-2 text-sm text-[#F5F5F5] placeholder-zinc-600 focus:outline-none resize-none"
+                  className="w-full bg-[#2F3437] border border-[#447ACB] rounded-xl px-4 py-3 text-sm text-[#D4D4D4] placeholder-[#6B6B6B] focus:outline-none resize-none"
                   autoFocus
                 />
                 <div className="flex gap-2">
                   <button
+                    type="button"
                     onClick={() => { saveField({ description }); setEditingDescription(false); }}
                     disabled={saving}
-                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm disabled:opacity-50"
+                    className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm disabled:opacity-50"
                   >
                     Save
                   </button>
                   <button
+                    type="button"
                     onClick={() => { setDescription(task.description ?? ''); setEditingDescription(false); }}
-                    className="px-3 py-1.5 border border-[#2A2A2A] text-zinc-400 hover:text-zinc-200 rounded-lg text-sm"
+                    className="px-3 py-1.5 border border-white/[0.08] text-[#9B9B9B] hover:text-[#D4D4D4] rounded-lg text-sm"
                   >
                     Cancel
                   </button>
@@ -217,40 +246,39 @@ export default function TaskDetail() {
               </div>
             ) : (
               <div
-                className={`min-h-[80px] p-3 rounded-lg border ${
-                  isAdmin
-                    ? 'border-[#2A2A2A] hover:border-zinc-600 cursor-pointer'
-                    : 'border-transparent'
+                className={`bg-[#2F3437] rounded-xl p-4 min-h-[120px] ${
+                  isAdmin ? 'cursor-pointer hover:bg-[#373C3F]' : ''
                 } transition-colors`}
                 onClick={() => isAdmin && setEditingDescription(true)}
               >
                 {task.description ? (
-                  <p className="text-sm text-zinc-300 whitespace-pre-wrap">{task.description}</p>
+                  <p className="text-sm text-[#D4D4D4] whitespace-pre-wrap">{task.description}</p>
                 ) : (
-                  <p className="text-sm text-zinc-700">{isAdmin ? 'Click to add description...' : 'No description'}</p>
+                  <p className="text-sm text-[#454B4E]">
+                    {isAdmin ? 'Click to add description...' : 'No description'}
+                  </p>
                 )}
               </div>
             )}
           </div>
 
           {/* Creator */}
-          <div className="pt-4 border-t border-[#2A2A2A]">
-            <p className="text-xs text-zinc-600">
-              Created by{' '}
-              <span className="text-zinc-400">{task.createdBy?.name}</span>
+          <div className="pt-4 border-t border-white/[0.06]">
+            <p className="text-[12px] text-[#454B4E]">
+              Created by <span className="text-[#6B6B6B]">{task.createdBy?.name}</span>
             </p>
           </div>
         </div>
 
         {/* Right: Metadata sidebar */}
-        <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-5 h-fit space-y-5">
+        <div className="bg-[#2F3437] border border-white/10 rounded-xl p-5 h-fit">
           {/* Status */}
-          <div>
-            <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-2">Status</p>
+          <div className="py-3 border-b border-white/[0.06]">
+            <p className={sectionLabel}>Status</p>
             <select
               value={status}
               onChange={(e) => { setStatus(e.target.value); saveField({ status: e.target.value }); }}
-              className={inputClass}
+              className={selectClass}
             >
               {STATUS_OPTIONS.map((s) => (
                 <option key={s} value={s}>
@@ -260,38 +288,38 @@ export default function TaskDetail() {
             </select>
           </div>
 
-          {/* Priority — admin only editable */}
-          <div>
-            <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-2">
-              Priority {!isAdmin && <span className="text-zinc-700">🔒</span>}
+          {/* Priority */}
+          <div className="py-3 border-b border-white/[0.06]">
+            <p className={sectionLabel}>
+              Priority {!isAdmin && <Lock size={10} className="inline ml-1 text-[#454B4E]" />}
             </p>
             {isAdmin ? (
               <select
                 value={priority}
                 onChange={(e) => { setPriority(e.target.value); saveField({ priority: e.target.value }); }}
-                className={inputClass}
+                className={selectClass}
               >
                 {PRIORITY_OPTIONS.map((p) => (
                   <option key={p} value={p}>{p.charAt(0) + p.slice(1).toLowerCase()}</option>
                 ))}
               </select>
             ) : (
-              <div className="px-3 py-2">
+              <div className="px-1 py-1">
                 <Badge type="priority" value={task.priority} />
               </div>
             )}
           </div>
 
-          {/* Assignee — admin only editable */}
-          <div>
-            <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-2">
-              Assignee {!isAdmin && <span className="text-zinc-700">🔒</span>}
+          {/* Assignee */}
+          <div className="py-3 border-b border-white/[0.06]">
+            <p className={sectionLabel}>
+              Assignee {!isAdmin && <Lock size={10} className="inline ml-1 text-[#454B4E]" />}
             </p>
             {isAdmin ? (
               <select
                 value={assigneeId}
                 onChange={(e) => { setAssigneeId(e.target.value); saveField({ assigneeId: e.target.value || null }); }}
-                className={inputClass}
+                className={selectClass}
               >
                 <option value="">Unassigned</option>
                 {members.map((m) => (
@@ -299,54 +327,41 @@ export default function TaskDetail() {
                 ))}
               </select>
             ) : (
-              <div className="px-3 py-2 flex items-center gap-2">
+              <div className="px-1 py-1 flex items-center gap-2">
                 {task.assignee ? (
                   <>
                     <Avatar name={task.assignee.name} size="sm" />
-                    <span className="text-sm text-zinc-300">{task.assignee.name}</span>
+                    <span className="text-sm text-[#D4D4D4]">{task.assignee.name}</span>
                   </>
                 ) : (
-                  <span className="text-sm text-zinc-600">Unassigned</span>
+                  <span className="text-sm text-[#454B4E]">Unassigned</span>
                 )}
               </div>
             )}
           </div>
 
-          {/* Due Date — admin only editable */}
-          <div>
-            <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-2">
-              Due Date {!isAdmin && <span className="text-zinc-700">🔒</span>}
+          {/* Due Date */}
+          <div className="py-3">
+            <p className={sectionLabel}>
+              Due Date {!isAdmin && <Lock size={10} className="inline ml-1 text-[#454B4E]" />}
             </p>
             {isAdmin ? (
               <input
                 type="date"
                 value={dueDate}
                 onChange={(e) => { setDueDate(e.target.value); saveField({ dueDate: e.target.value || undefined }); }}
-                className={inputClass}
+                className={selectClass}
               />
             ) : (
-              <div className="px-3 py-2">
-                <span className="text-sm text-zinc-300">
+              <div className="px-1 py-1">
+                <span className="text-sm text-[#D4D4D4]">
                   {task.dueDate
                     ? new Date(task.dueDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
-                    : <span className="text-zinc-600">Not set</span>
+                    : <span className="text-[#454B4E]">Not set</span>
                   }
                 </span>
               </div>
             )}
-          </div>
-
-          {/* Back link */}
-          <div className="pt-2 border-t border-[#2A2A2A]">
-            <Link
-              to={`/projects/${id}`}
-              className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors flex items-center gap-1"
-            >
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              Back to {projectName}
-            </Link>
           </div>
         </div>
       </div>
@@ -361,6 +376,6 @@ export default function TaskDetail() {
           onCancel={() => setShowDeleteModal(false)}
         />
       )}
-    </div>
+    </motion.div>
   );
 }
