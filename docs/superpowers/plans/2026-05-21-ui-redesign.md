@@ -1,7 +1,5 @@
 # UI Redesign Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
-
 **Goal:** Replace the current light indigo theme with a Linear/Vercel-style dark SaaS UI — fixed dark sidebar, blue + emerald accent colors, Inter font, polished dark cards and typography throughout.
 
 **Architecture:** Pure frontend visual overhaul. Add a fixed 240px dark sidebar (`Sidebar.tsx`) and `AppShell.tsx` shell component that wraps all authenticated pages. Replace `Navbar.tsx` and `StatusBadge.tsx` with new `Badge.tsx`, `Avatar.tsx`, `EmptyState.tsx`, `ConfirmModal.tsx`, `PageHeader.tsx`. Update all pages and components to use dark color tokens. No backend changes.

@@ -1,7 +1,5 @@
 # Notion-Inspired UI Redesign Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
-
 **Goal:** Upgrade the existing dark TeamTaskManager UI from a generic admin-dashboard look to a Notion/Linear-quality premium SaaS aesthetic with warm neutral colors, Framer Motion animations, collapsible sidebar, sticky blur navbar, Lucide icons, and full mobile responsiveness.
 
 **Architecture:** Pure visual overhaul — no API, routing, or backend changes. All 16 frontend files are updated in place. Two new npm dependencies (framer-motion, lucide-react) are added. Changes flow from foundational (deps, tokens, shared components) to pages.
